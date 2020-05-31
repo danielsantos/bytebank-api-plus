@@ -1,3 +1,4 @@
+import 'package:bytebank_sqflite/components/transaction_auth_dialog.dart';
 import 'package:bytebank_sqflite/http/webclients/transaction_webclient.dart';
 import 'package:bytebank_sqflite/models/contact.dart';
 import 'package:bytebank_sqflite/models/transaction.dart';
@@ -58,17 +59,23 @@ class _TransactionFormState extends State<TransactionForm> {
                 child: SizedBox(
                   width: double.maxFinite,
                   child: RaisedButton(
-                    child: Text('Transfer'), onPressed: () {
-                      final double value = double.tryParse(_valueController.text);
-                      final transactionCreated = Transaction(value, widget.contact);
+                    child: Text('Transfer'),
+                    onPressed: () {
+                      final double value =
+                          double.tryParse(_valueController.text);
+                      final transactionCreated =
+                          Transaction(value, widget.contact);
 
-                      _webCliente.save(transactionCreated).then((transactionReceived) {
-                        if (transactionReceived != null) {
-                          Navigator.of(context).pop();
-                        }
-                      });
-
-                  },
+                      showDialog(
+                          context: context,
+                          builder: (contextDialog,) {
+                            return TransactionAuthDialog(
+                              onConfirm: (String password) {
+                                _save(transactionCreated, password, context);
+                              },
+                            );
+                          });
+                    },
                   ),
                 ),
               )
@@ -77,5 +84,14 @@ class _TransactionFormState extends State<TransactionForm> {
         ),
       ),
     );
+  }
+
+  void _save(Transaction transactionCreated, String password, BuildContext context) async {
+    //await Future.delayed(Duration(seconds: 1)); // just for test
+    _webCliente.save(transactionCreated, password).then((transactionReceived) {
+      if (transactionReceived != null) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 }
