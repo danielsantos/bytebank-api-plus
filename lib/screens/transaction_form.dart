@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bytebank_sqflite/components/response_dialog.dart';
 import 'package:bytebank_sqflite/components/transaction_auth_dialog.dart';
 import 'package:bytebank_sqflite/http/webclients/transaction_webclient.dart';
@@ -89,7 +91,13 @@ class _TransactionFormState extends State<TransactionForm> {
 
   void _save(Transaction transactionCreated, String password, BuildContext context) async {
     //await Future.delayed(Duration(seconds: 1)); // just for test
-    final Transaction transactionReceived = await _webCliente.save(transactionCreated, password).catchError((e) {
+    final Transaction transactionReceived = await _webCliente.save(transactionCreated, password)
+    .catchError((e) {
+      showDialog(context: context, builder: (contextDialog) {
+        return FailureDialog('timeout on submitting the transaction');
+      },);
+    }, test: (e) => e is TimeoutException) // FIXME - Don't work 'TimeoutException' is not generate
+    .catchError((e) {
       showDialog(context: context, builder: (contextDialog) {
         return FailureDialog(e.message);
       },);
