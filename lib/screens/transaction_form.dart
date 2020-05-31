@@ -89,16 +89,18 @@ class _TransactionFormState extends State<TransactionForm> {
 
   void _save(Transaction transactionCreated, String password, BuildContext context) async {
     //await Future.delayed(Duration(seconds: 1)); // just for test
-    _webCliente.save(transactionCreated, password).then((transactionReceived) {
-      if (transactionReceived != null) {
-        showDialog(context: context, builder: (contextDialog) {
-          return SuccessDialog('successful transaction');
-        }).then((value) => Navigator.of(context).pop());
-      }
-    }).catchError((e) {
+    final Transaction transactionReceived = await _webCliente.save(transactionCreated, password).catchError((e) {
       showDialog(context: context, builder: (contextDialog) {
         return FailureDialog(e.message);
       },);
     }, test: (e) => e is Exception);
+
+    if (transactionReceived != null) {
+      await showDialog(context: context, builder: (contextDialog) {
+        return SuccessDialog('successful transaction');
+      });
+      Navigator.of(context).pop();
+    }
   }
+
 }
