@@ -1,3 +1,4 @@
+import 'package:bytebank_sqflite/components/response_dialog.dart';
 import 'package:bytebank_sqflite/components/transaction_auth_dialog.dart';
 import 'package:bytebank_sqflite/http/webclients/transaction_webclient.dart';
 import 'package:bytebank_sqflite/models/contact.dart';
@@ -90,8 +91,14 @@ class _TransactionFormState extends State<TransactionForm> {
     //await Future.delayed(Duration(seconds: 1)); // just for test
     _webCliente.save(transactionCreated, password).then((transactionReceived) {
       if (transactionReceived != null) {
-        Navigator.of(context).pop();
+        showDialog(context: context, builder: (contextDialog) {
+          return SuccessDialog('successful transaction');
+        }).then((value) => Navigator.of(context).pop());
       }
-    });
+    }).catchError((e) {
+      showDialog(context: context, builder: (contextDialog) {
+        return FailureDialog(e.message);
+      },);
+    }, test: (e) => e is Exception);
   }
 }
