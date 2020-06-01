@@ -19,7 +19,7 @@ class TransactionWebCliente {
 
     final String transactionJson = jsonEncode(transaction.toJson());
 
-    await Future.delayed(Duration(seconds: 10));
+    await Future.delayed(Duration(seconds: 4));
 
     final Response response = await client.post(
       baseUrl,

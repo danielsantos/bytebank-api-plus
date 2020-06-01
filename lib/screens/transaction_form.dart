@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bytebank_sqflite/components/progress.dart';
 import 'package:bytebank_sqflite/components/response_dialog.dart';
 import 'package:bytebank_sqflite/components/transaction_auth_dialog.dart';
 import 'package:bytebank_sqflite/http/webclients/transaction_webclient.dart';
@@ -22,6 +23,8 @@ class _TransactionFormState extends State<TransactionForm> {
   final TransactionWebCliente _webCliente = new TransactionWebCliente();
   final String transactionId = Uuid().v4();
 
+  bool _sending = false;
+
   @override
   Widget build(BuildContext context) {
     print('transaction form id $transactionId');
@@ -35,6 +38,13 @@ class _TransactionFormState extends State<TransactionForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
+              Visibility(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Progress(),
+                ),
+                visible: _sending,
+              ),
               Text(
                 widget.contact.name,
                 style: TextStyle(
@@ -109,6 +119,11 @@ class _TransactionFormState extends State<TransactionForm> {
   }
 
   Future<Transaction> _send(Transaction transactionCreated, String password, BuildContext context) async {
+
+    setState(() {
+      _sending = true;
+    });
+
     final Transaction transactionReceived = await _webCliente.save(transactionCreated, password)
     .catchError((e) {
       _showFailureMessage(context, message: 'timeout on submitting the transaction');
@@ -118,6 +133,10 @@ class _TransactionFormState extends State<TransactionForm> {
     }, test: (e) => e is Exception) // HttpException
     .catchError((e) {
       _showFailureMessage(context);
+    }).whenComplete(() {
+      setState(() {
+        _sending = false;
+      });
     });
     return transactionReceived;
   }
